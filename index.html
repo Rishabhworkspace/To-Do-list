@@ -122,11 +122,30 @@
                     <span class="task-priority"></span>
                     <span class="task-due-date"></span>
                 </div>
+                <div class="subtasks-container">
+                    <ul class="subtasks-list"></ul>
+                    <div class="add-subtask">
+                        <input type="text" class="subtask-input" placeholder="Add subtask...">
+                        <button class="add-subtask-btn"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
             </div>
             <div class="task-actions">
+                <button class="toggle-subtasks-btn"><i class="fas fa-tasks"></i></button>
                 <button class="edit-task-btn"><i class="fas fa-edit"></i></button>
                 <button class="delete-task-btn"><i class="fas fa-trash"></i></button>
             </div>
+        </li>
+    </template>
+
+    <!-- Subtask Template (Hidden) -->
+    <template id="subtask-template">
+        <li class="subtask-item">
+            <div class="subtask-content">
+                <input type="checkbox" class="subtask-checkbox">
+                <span class="subtask-text"></span>
+            </div>
+            <button class="delete-subtask-btn"><i class="fas fa-times"></i></button>
         </li>
     </template>
 
@@ -161,6 +180,14 @@
                 <div class="form-group">
                     <label for="edit-task-due-date">Due Date</label>
                     <input type="date" id="edit-task-due-date">
+                </div>
+                <div class="form-group">
+                    <label>Subtasks</label>
+                    <ul id="edit-subtasks-list" class="edit-subtasks-list"></ul>
+                    <div class="add-subtask edit-add-subtask">
+                        <input type="text" id="edit-subtask-input" placeholder="Add subtask...">
+                        <button type="button" id="edit-add-subtask-btn"><i class="fas fa-plus"></i></button>
+                    </div>
                 </div>
                 <button type="submit" id="save-edit-btn">Save Changes</button>
             </form>

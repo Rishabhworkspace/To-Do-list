@@ -28,6 +28,7 @@
     --card-bg: #242424;         /* Slightly lighter card background */
     --border-color: #3a3a3a;    /* Subtle border for dark mode */
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --input-bg: #333333;         /* Darker grey for input backgrounds */
 }
 
 /* Reset and Global Styles */
@@ -520,4 +521,169 @@ select:focus, input[type="date"]:focus {
 @keyframes fadeOut {
     from { opacity: 1; transform: translateY(0); }
     to { opacity: 0; transform: translateY(10px); }
+}
+
+/* Update input styles for dark mode */
+.dark-theme input[type="text"],
+.dark-theme input[type="date"],
+.dark-theme select {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+/* Subtasks Styling */
+.subtasks-container {
+    margin-top: 10px;
+    margin-left: 30px;
+    display: none;
+}
+
+.subtasks-container.show {
+    display: block;
+}
+
+.subtasks-list {
+    list-style: none;
+    margin-bottom: 10px;
+}
+
+.subtask-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.subtask-item:last-child {
+    border-bottom: none;
+}
+
+.subtask-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.subtask-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.subtask-text {
+    font-size: 0.9rem;
+}
+
+.delete-subtask-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 5px;
+    border-radius: 50%;
+}
+
+.delete-subtask-btn:hover {
+    color: var(--danger-color);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.add-subtask {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.subtask-input {
+    flex: 1;
+    padding: 5px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.dark-theme .subtask-input {
+    background-color: var(--input-bg);
+}
+
+.add-subtask-btn {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-subtasks-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-light);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.toggle-subtasks-btn:hover {
+    color: var(--primary-color);
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Edit Subtasks */
+.edit-subtasks-list {
+    list-style: none;
+    margin-bottom: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 5px;
+}
+
+.edit-add-subtask {
+    display: flex;
+    gap: 5px;
+}
+
+#edit-subtask-input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.dark-theme #edit-subtask-input {
+    background-color: var(--input-bg);
+}
+
+#edit-add-subtask-btn {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

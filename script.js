@@ -67,6 +67,7 @@ function init() {
 }
 
 // Add a new task
+// Update the task data structure to include subtasks
 function addTask(e) {
     e.preventDefault();
     
@@ -80,7 +81,8 @@ function addTask(e) {
         priority: taskPriority.value,
         dueDate: taskDueDate.value || null,
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        subtasks: [] // Add subtasks array
     };
     
     tasks.unshift(newTask);
@@ -93,25 +95,7 @@ function addTask(e) {
     taskInput.focus();
 }
 
-// Render tasks to the DOM
-function renderTasks() {
-    const filteredTasks = getFilteredTasks();
-    
-    taskList.innerHTML = '';
-    
-    if (filteredTasks.length === 0) {
-        emptyState.style.display = 'block';
-    } else {
-        emptyState.style.display = 'none';
-        
-        filteredTasks.forEach(task => {
-            const taskElement = createTaskElement(task);
-            taskList.appendChild(taskElement);
-        });
-    }
-}
-
-// Create a task element
+// Update createTaskElement to include subtasks
 function createTaskElement(task) {
     const template = document.getElementById('task-template');
     const taskElement = document.importNode(template.content, true).querySelector('.task-item');
@@ -150,7 +134,292 @@ function createTaskElement(task) {
         taskElement.classList.add('task-completed');
     }
     
+    // Add subtasks
+    const subtasksList = taskElement.querySelector('.subtasks-list');
+    const subtaskInput = taskElement.querySelector('.subtask-input');
+    const addSubtaskBtn = taskElement.querySelector('.add-subtask-btn');
+    const toggleSubtasksBtn = taskElement.querySelector('.toggle-subtasks-btn');
+    const subtasksContainer = taskElement.querySelector('.subtasks-container');
+    
+    // Render existing subtasks
+    if (task.subtasks && task.subtasks.length > 0) {
+        task.subtasks.forEach(subtask => {
+            const subtaskEl = createSubtaskElement(subtask, task.id);
+            subtasksList.appendChild(subtaskEl);
+        });
+    }
+    
+    // Add subtask event listener
+    addSubtaskBtn.addEventListener('click', () => {
+        const subtaskText = subtaskInput.value.trim();
+        if (!subtaskText) return;
+        
+        const newSubtask = {
+            id: Date.now().toString(),
+            text: subtaskText,
+            completed: false
+        };
+        
+        // Find the task and add the subtask
+        const taskIndex = tasks.findIndex(t => t.id === task.id);
+        if (taskIndex !== -1) {
+            if (!tasks[taskIndex].subtasks) {
+                tasks[taskIndex].subtasks = [];
+            }
+            tasks[taskIndex].subtasks.push(newSubtask);
+            saveTasks();
+            
+            // Add subtask to DOM
+            const subtaskEl = createSubtaskElement(newSubtask, task.id);
+            subtasksList.appendChild(subtaskEl);
+            subtaskInput.value = '';
+            
+            // Show subtasks container if hidden
+            subtasksContainer.classList.add('show');
+        }
+    });
+    
+    // Toggle subtasks visibility
+    toggleSubtasksBtn.addEventListener('click', () => {
+        subtasksContainer.classList.toggle('show');
+    });
+    
     return taskElement;
+}
+
+// Create subtask element
+function createSubtaskElement(subtask, taskId) {
+    const template = document.getElementById('subtask-template');
+    const subtaskElement = document.importNode(template.content, true).querySelector('.subtask-item');
+    
+    // Set subtask ID
+    subtaskElement.dataset.id = subtask.id;
+    subtaskElement.dataset.taskId = taskId;
+    
+    // Set subtask content
+    const checkbox = subtaskElement.querySelector('.subtask-checkbox');
+    const subtaskText = subtaskElement.querySelector('.subtask-text');
+    const deleteBtn = subtaskElement.querySelector('.delete-subtask-btn');
+    
+    checkbox.checked = subtask.completed;
+    subtaskText.textContent = subtask.text;
+    
+    if (subtask.completed) {
+        subtaskText.style.textDecoration = 'line-through';
+        subtaskText.style.color = 'var(--text-light)';
+    }
+    
+    // Add event listeners
+    checkbox.addEventListener('change', () => {
+        const taskIndex = tasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
+            const subtaskIndex = tasks[taskIndex].subtasks.findIndex(s => s.id === subtask.id);
+            if (subtaskIndex !== -1) {
+                tasks[taskIndex].subtasks[subtaskIndex].completed = checkbox.checked;
+                saveTasks();
+                
+                if (checkbox.checked) {
+                    subtaskText.style.textDecoration = 'line-through';
+                    subtaskText.style.color = 'var(--text-light)';
+                } else {
+                    subtaskText.style.textDecoration = 'none';
+                    subtaskText.style.color = 'var(--text-color)';
+                }
+            }
+        }
+    });
+    
+    deleteBtn.addEventListener('click', () => {
+        const taskIndex = tasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
+            tasks[taskIndex].subtasks = tasks[taskIndex].subtasks.filter(s => s.id !== subtask.id);
+            saveTasks();
+            subtaskElement.remove();
+        }
+    });
+    
+    return subtaskElement;
+}
+
+// Update openEditModal to include subtasks
+function openEditModal(task) {
+    currentTaskId = task.id;
+    editTaskInput.value = task.text;
+    editTaskCategory.value = task.category;
+    editTaskPriority.value = task.priority;
+    editTaskDueDate.value = task.dueDate || '';
+    
+    // Clear and populate subtasks
+    const editSubtasksList = document.getElementById('edit-subtasks-list');
+    editSubtasksList.innerHTML = '';
+    
+    if (task.subtasks && task.subtasks.length > 0) {
+        task.subtasks.forEach(subtask => {
+            const subtaskItem = document.createElement('li');
+            subtaskItem.className = 'subtask-item';
+            subtaskItem.dataset.id = subtask.id;
+            
+            const subtaskContent = document.createElement('div');
+            subtaskContent.className = 'subtask-content';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'subtask-checkbox';
+            checkbox.checked = subtask.completed;
+            
+            const subtaskText = document.createElement('span');
+            subtaskText.className = 'subtask-text';
+            subtaskText.textContent = subtask.text;
+            
+            if (subtask.completed) {
+                subtaskText.style.textDecoration = 'line-through';
+                subtaskText.style.color = 'var(--text-light)';
+            }
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-subtask-btn';
+            deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+            
+            subtaskContent.appendChild(checkbox);
+            subtaskContent.appendChild(subtaskText);
+            
+            subtaskItem.appendChild(subtaskContent);
+            subtaskItem.appendChild(deleteBtn);
+            
+            editSubtasksList.appendChild(subtaskItem);
+            
+            // Add event listeners
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    subtaskText.style.textDecoration = 'line-through';
+                    subtaskText.style.color = 'var(--text-light)';
+                } else {
+                    subtaskText.style.textDecoration = 'none';
+                    subtaskText.style.color = 'var(--text-color)';
+                }
+            });
+            
+            deleteBtn.addEventListener('click', () => {
+                subtaskItem.remove();
+            });
+        });
+    }
+    
+    // Add event listener for adding subtasks in edit modal
+    const editSubtaskInput = document.getElementById('edit-subtask-input');
+    const editAddSubtaskBtn = document.getElementById('edit-add-subtask-btn');
+    
+    editAddSubtaskBtn.onclick = () => {
+        const subtaskText = editSubtaskInput.value.trim();
+        if (!subtaskText) return;
+        
+        const newSubtask = {
+            id: Date.now().toString(),
+            text: subtaskText,
+            completed: false
+        };
+        
+        const subtaskItem = document.createElement('li');
+        subtaskItem.className = 'subtask-item';
+        subtaskItem.dataset.id = newSubtask.id;
+        
+        const subtaskContent = document.createElement('div');
+        subtaskContent.className = 'subtask-content';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'subtask-checkbox';
+        
+        const subtaskTextEl = document.createElement('span');
+        subtaskTextEl.className = 'subtask-text';
+        subtaskTextEl.textContent = subtaskText;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-subtask-btn';
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        
+        subtaskContent.appendChild(checkbox);
+        subtaskContent.appendChild(subtaskTextEl);
+        
+        subtaskItem.appendChild(subtaskContent);
+        subtaskItem.appendChild(deleteBtn);
+        
+        editSubtasksList.appendChild(subtaskItem);
+        
+        editSubtaskInput.value = '';
+        
+        // Add event listeners
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                subtaskTextEl.style.textDecoration = 'line-through';
+                subtaskTextEl.style.color = 'var(--text-light)';
+            } else {
+                subtaskTextEl.style.textDecoration = 'none';
+                subtaskTextEl.style.color = 'var(--text-color)';
+            }
+        });
+        
+        deleteBtn.addEventListener('click', () => {
+            subtaskItem.remove();
+        });
+    };
+    
+    editModal.style.display = 'block';
+    editTaskInput.focus();
+}
+
+// Update saveEditTask to include subtasks
+function saveEditTask(e) {
+    e.preventDefault();
+    
+    const taskIndex = tasks.findIndex(t => t.id === currentTaskId);
+    if (taskIndex === -1) return;
+    
+    tasks[taskIndex].text = editTaskInput.value;
+    tasks[taskIndex].category = editTaskCategory.value;
+    tasks[taskIndex].priority = editTaskPriority.value;
+    tasks[taskIndex].dueDate = editTaskDueDate.value || null;
+    
+    // Update subtasks
+    const editSubtasksList = document.getElementById('edit-subtasks-list');
+    const subtaskItems = editSubtasksList.querySelectorAll('.subtask-item');
+    
+    tasks[taskIndex].subtasks = [];
+    
+    subtaskItems.forEach(item => {
+        const subtaskId = item.dataset.id;
+        const subtaskText = item.querySelector('.subtask-text').textContent;
+        const subtaskCompleted = item.querySelector('.subtask-checkbox').checked;
+        
+        tasks[taskIndex].subtasks.push({
+            id: subtaskId,
+            text: subtaskText,
+            completed: subtaskCompleted
+        });
+    });
+    
+    saveTasks();
+    renderTasks();
+    
+    editModal.style.display = 'none';
+}
+
+// Render tasks to the DOM
+function renderTasks() {
+    const filteredTasks = getFilteredTasks();
+    
+    taskList.innerHTML = '';
+    
+    if (filteredTasks.length === 0) {
+        emptyState.style.display = 'block';
+    } else {
+        emptyState.style.display = 'none';
+        
+        filteredTasks.forEach(task => {
+            const taskElement = createTaskElement(task);
+            taskList.appendChild(taskElement);
+        });
+    }
 }
 
 // Handle task actions (complete, edit, delete)
